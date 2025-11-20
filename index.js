@@ -1,36 +1,29 @@
-import express from "express";
-
-// Dynamic fetch import (no node-fetch install needed)
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
-const app = express();
-app.use(express.json());
-
-// Home route
-app.get("/", (req, res) => {
-  res.json({ message: "Your API is live!" });
-});
-
-// Fake create-design endpoint (temporary)
 app.post("/create-design", async (req, res) => {
   try {
     const prompt = req.body.prompt || "anime character design";
 
-    res.status(200).json({
-      success: true,
-      message: "Stable Diffusion request received",
-      prompt: prompt,
-      exampleImageUrl: "https://via.placeholder.com/512"
-    });
+    const response = await fetch(
+      "https://stablediffusionapi.com/api/v3/text2img",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          key: "freekey",
+          prompt: prompt,
+          width: "512",
+          height: "512",
+          samples: 1,
+          guidance_scale: 7.5
+        })
+      }
+    );
+
+    const data = await response.json();
+    res.status(200).json(data);
 
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-
-// Start server
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
 });
