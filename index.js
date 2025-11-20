@@ -1,8 +1,10 @@
 import express from "express";
 
-// Dynamic fetch import (no node-fetch install needed)
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+const app = express();
+app.use(express.json());
 
 const app = express();
 app.use(express.json());
