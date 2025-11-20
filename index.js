@@ -1,13 +1,14 @@
 import express from "express";
-import fetch from "node-fetch";
 
 const app = express();
 app.use(express.json());
 
+// Test route
 app.get("/", (req, res) => {
   res.json({ message: "Your Canva API is live!" });
 });
 
+// Canva design creation route
 app.post("/create-design", async (req, res) => {
   try {
     const CANVA_TOKEN = process.env.CANVA_TOKEN;
@@ -32,7 +33,7 @@ app.post("/create-design", async (req, res) => {
   }
 });
 
-// required on render
+// Required for Render hosting
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
