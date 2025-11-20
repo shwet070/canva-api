@@ -1,42 +1,40 @@
 import express from "express";
-import fetch from "node-fetch";
 import dotenv from "dotenv";
 
 dotenv.config();
-const app = express();
 
+// Dynamic fetch import (no node-fetch install needed)
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+const app = express();
 app.use(express.json());
 
+// Home route
 app.get("/", (req, res) => {
-  res.json({ message: "Stable Diffusion Anime API is live!" });
+  res.json({ message: "Your API is live!" });
 });
 
+// Fake create-design endpoint (temporary until SD is added)
 app.post("/create-design", async (req, res) => {
   try {
-    const API_KEY = process.env.STABLE_API_KEY;
+    const prompt = req.body.prompt || "anime character design";
 
-    const response = await fetch(
-      "https://api.stability.ai/v2beta/stable-image/generate/sd3",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          prompt: req.body.prompt || "anime character t-shirt design",
-          aspect_ratio: "1:1", // perfect for T-shirts
-          output_format: "png"
-        })
-      }
-    );
+    // Fake API response for now
+    res.status(200).json({
+      success: true,
+      message: "Stable Diffusion request received",
+      prompt: prompt,
+      exampleImageUrl: "https://via.placeholder.com/512"
+    });
 
-    const result = await response.json();
-    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on port " + PORT));
+// Start server
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
