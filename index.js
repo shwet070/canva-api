@@ -1,14 +1,5 @@
 import express from "express";
 
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
-
-const app = express();
-app.use(express.json());
-
-const app = express();
-app.use(express.json());
-
 // Dynamic fetch import (no node-fetch install needed)
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
@@ -21,12 +12,11 @@ app.get("/", (req, res) => {
   res.json({ message: "Your API is live!" });
 });
 
-// Fake create-design endpoint (temporary until SD is added)
+// Fake create-design endpoint (temporary)
 app.post("/create-design", async (req, res) => {
   try {
     const prompt = req.body.prompt || "anime character design";
 
-    // Fake API response for now
     res.status(200).json({
       success: true,
       message: "Stable Diffusion request received",
