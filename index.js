@@ -1,42 +1,34 @@
 import express from "express";
+import dotenv from "dotenv";
 
-// Dynamic fetch import
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// Homepage route
+// Home route
 app.get("/", (req, res) => {
   res.json({ message: "Your API is live!" });
 });
 
-// ⬇️ Paste the create-design route HERE
+// Create design endpoint (Stable Diffusion request)
 app.post("/create-design", async (req, res) => {
   try {
-    const prompt = req.body.prompt || "anime character design";
+    const prompt = req.body.prompt || "anime girl character design";
 
-    const response = await fetch(
-      "https://stablediffusionapi.com/api/v3/text2img",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          key: "freekey",
-          prompt: prompt,
-          width: "512",
-          height: "512",
-          samples: 1,
-          guidance_scale: 7.5
-        })
-      }
-    );
+    const response = await fetch("https://api.stability.ai/v2beta/stable-image/generate/ultra", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
+        Accept: "application/json"
+      },
+      body: JSON.stringify({
+        prompt: prompt
+      })
+    });
 
-    const data = await response.json();
-    res.status(200).json(data);
+    const result = await response.json();
+    res.status(200).json(result);
 
   } catch (err) {
     res.status(500).json({ error: err.message });
