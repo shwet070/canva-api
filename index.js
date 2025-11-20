@@ -1,9 +1,24 @@
+import express from "express";
+
+const app = express();
+app.use(express.json());
+
+// Test route
+app.get("/", (req, res) => {
+  res.send("Server is running...");
+});
+
+// Create-design route
 app.post("/create-design", (req, res) => {
   res.json({
-    id: "fake-design-" + Math.floor(Math.random() * 999999),
-    name: req.body.name,
-    width: req.body.width,
-    height: req.body.height,
-    status: "Mock design generated successfully"
+    success: true,
+    message: "Design API route is working.",
+    received: req.body
   });
+});
+
+// Server listen
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
