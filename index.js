@@ -1,7 +1,11 @@
 import express from "express";
-import dotenv from "dotenv";
 
-dotenv.config();
+// Dynamic fetch import (no node-fetch install needed)
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+const app = express();
+app.use(express.json());
 
 // Dynamic fetch import (no node-fetch install needed)
 const fetch = (...args) =>
