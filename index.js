@@ -1,5 +1,6 @@
 // index.js
 import express from "express";
+import FormData from "form-data"; // FIXED: Node needs this
 
 const app = express();
 app.use(express.json());
@@ -60,7 +61,14 @@ async function callStabilityImage(prompt) {
     body: JSON.stringify(payload)
   });
 
-  const data = await res.json();
+  const text = await res.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (err) {
+    throw new Error("Stability returned non-JSON: " + text.slice(0, 200));
+  }
 
   if (!data.image_base64) {
     throw new Error("No image returned: " + JSON.stringify(data));
