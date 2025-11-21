@@ -5,14 +5,14 @@ const app = express();
 app.use(express.json());
 
 const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
-const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID;
+const IMGBB_API_KEY = process.env.IMGBB_API_KEY;
 
-// Utility pick function
+// Utility random picker
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Generate idea
+// Generate T-shirt idea
 function generateIdeaObject() {
   const adjectives = ["Moonlight", "Neon", "Crimson", "Void", "Kitsune", "Ghost", "Thunder", "Solar"];
   const nouns = ["Samurai", "Ronin", "Spirit", "Guardian", "Shadow", "Blossom", "Rebel", "Rider"];
@@ -33,7 +33,7 @@ function generateIdeaObject() {
   ];
 
   const title = `${pick(adjectives)} ${pick(nouns)}`;
-  const artworkConcept = `A ${pick(styles)} illustration: ${title} — ${pick(poses)}, colors: ${pick(colors)}. Bold, high-contrast, suitable for a T-shirt print.`;
+  const artworkConcept = `A ${pick(styles)} illustration: ${title} — ${pick(poses)}, colors: ${pick(colors)}. Bold, high-contrast, cinematic lighting, suitable for a T-shirt print.`;
 
   return {
     title,
@@ -74,27 +74,31 @@ async function callStabilityImage(prompt) {
   return data.artifacts[0].base64;
 }
 
-// Upload image to Imgur
-async function uploadToImgur(base64) {
+// ImgBB upload
+async function uploadToImgBB(base64) {
+  const apiKey = process.env.IMGBB_API_KEY;
+  const url = `https://api.imgbb.com/1/upload?key=${apiKey}`;
+
   const form = new FormData();
   form.append("image", base64);
 
-  const res = await fetch("https://api.imgur.com/3/image", {
+  const res = await fetch(url, {
     method: "POST",
-    headers: { Authorization: `Client-ID ${IMGUR_CLIENT_ID}` },
     body: form
   });
 
   const data = await res.json();
 
-  if (!data.success) throw new Error("Imgur upload failed.");
+  if (!data.success) {
+    throw new Error("ImgBB upload failed: " + JSON.stringify(data));
+  }
 
-  return data.data.link;
+  return data.data.url; // direct URL
 }
 
 // Test endpoint
 app.get("/", (req, res) => {
-  res.json({ message: "Anime T-shirt API running." });
+  res.json({ message: "Anime T-shirt API (ImgBB) running." });
 });
 
 // Main endpoint
@@ -105,11 +109,11 @@ app.all("/generate", async (req, res) => {
     if (!STABILITY_API_KEY)
       return res.status(500).json({ error: "Missing STABILITY_API_KEY" });
 
-    if (!IMGUR_CLIENT_ID)
-      return res.status(500).json({ error: "Missing IMGUR_CLIENT_ID" });
+    if (!IMGBB_API_KEY)
+      return res.status(500).json({ error: "Missing IMGBB_API_KEY" });
 
     const b64 = await callStabilityImage(idea.artworkConcept);
-    const imgUrl = await uploadToImgur(b64);
+    const imgUrl = await uploadToImgBB(b64);
 
     res.json({
       title: idea.title,
