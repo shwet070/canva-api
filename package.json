@@ -1,9 +1,10 @@
 {
-  "name": "canva-api",
+  "name": "canva-ai-api",
   "version": "1.0.0",
-  "main": "index.js",
   "type": "module",
+  "main": "index.js",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "node-fetch": "^3.4.0"
   }
 }
