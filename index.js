@@ -42,7 +42,7 @@ function generateIdeaObject() {
   };
 }
 
-// Stability AI generator
+// Stability AI generator (SD 3.5 Turbo)
 async function callStabilityImage(prompt) {
   const endpoint = "https://api.stability.ai/v2beta/stable-image/generate/sd3.5-large-turbo";
 
@@ -69,35 +69,6 @@ async function callStabilityImage(prompt) {
   return data.image_base64;
 }
 
-
-  const payload = {
-    text_prompts: [{ text: prompt }],
-    cfg_scale: 7,
-    clip_guidance_preset: "FAST_BLUE",
-    height: 1024,
-    width: 1024,
-    samples: 1,
-    steps: 28
-  };
-
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${STABILITY_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  const data = await res.json();
-
-  if (!data.artifacts || !data.artifacts[0]?.base64) {
-    throw new Error("Stability API returned invalid image data");
-  }
-
-  return data.artifacts[0].base64;
-}
-
 // ImgBB upload
 async function uploadToImgBB(base64) {
   const apiKey = process.env.IMGBB_API_KEY;
@@ -117,12 +88,12 @@ async function uploadToImgBB(base64) {
     throw new Error("ImgBB upload failed: " + JSON.stringify(data));
   }
 
-  return data.data.url; // direct URL
+  return data.data.url;
 }
 
 // Test endpoint
 app.get("/", (req, res) => {
-  res.json({ message: "Anime T-shirt API (ImgBB) running." });
+  res.json({ message: "Anime T-shirt API (ImgBB + SD3.5 Turbo) running." });
 });
 
 // Main endpoint
