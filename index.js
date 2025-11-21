@@ -44,7 +44,31 @@ function generateIdeaObject() {
 
 // Stability AI generator
 async function callStabilityImage(prompt) {
-  const endpoint = `https://api.stability.ai/v1/generation/stable-diffusion-v1-5/text-to-image`;
+  const endpoint = "https://api.stability.ai/v2beta/stable-image/generate/sd3.5-large-turbo";
+
+  const payload = {
+    prompt: prompt,
+    output_format: "png"
+  };
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${STABILITY_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  if (!data.image_base64) {
+    throw new Error("No image returned: " + JSON.stringify(data));
+  }
+
+  return data.image_base64;
+}
+
 
   const payload = {
     text_prompts: [{ text: prompt }],
