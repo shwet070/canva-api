@@ -1,12 +1,8 @@
 // index.js
 import express from "express";
-import FormData from "form-data"; // FIXED: Node needs this
 
 const app = express();
 app.use(express.json());
-
-const STABILITY_API_KEY = process.env.STABILITY_API_KEY;
-const IMGBB_API_KEY = process.env.IMGBB_API_KEY;
 
 // Utility random picker
 function pick(arr) {
@@ -17,8 +13,20 @@ function pick(arr) {
 function generateIdeaObject() {
   const adjectives = ["Moonlight", "Neon", "Crimson", "Void", "Kitsune", "Ghost", "Thunder", "Solar"];
   const nouns = ["Samurai", "Ronin", "Spirit", "Guardian", "Shadow", "Blossom", "Rebel", "Rider"];
-  const styles = ["cyberpunk anime", "vaporwave anime", "traditional ukiyo-e anime", "grunge anime", "chibi anime", "high-contrast anime poster"];
-  const colors = ["neon purple, electric blue, black", "crimson and gold", "pastel pink and mint", "monochrome black & white"];
+  const styles = [
+    "cyberpunk anime",
+    "vaporwave anime",
+    "traditional ukiyo-e anime",
+    "grunge anime",
+    "chibi anime",
+    "high-contrast anime poster"
+  ];
+  const colors = [
+    "neon purple, electric blue, black",
+    "crimson and gold",
+    "pastel pink and mint",
+    "monochrome black & white"
+  ];
   const poses = [
     "silhouette standing on a rooftop under rain",
     "back turned holding a katana with wind-swept hair",
@@ -34,7 +42,7 @@ function generateIdeaObject() {
   ];
 
   const title = `${pick(adjectives)} ${pick(nouns)}`;
-  const artworkConcept = `A ${pick(styles)} illustration: ${title} — ${pick(poses)}, colors: ${pick(colors)}. Bold, high-contrast, cinematic lighting, suitable for a T-shirt print.`;
+  const artworkConcept = `A ${pick(styles)} illustration: ${title} — ${pick(poses)}, colors: ${pick(colors)}. Bold, high-contrast, cinematic lighting, perfect for T-shirt print.`;
 
   return {
     title,
@@ -43,80 +51,24 @@ function generateIdeaObject() {
   };
 }
 
-// Stability AI generator (SD 3.5 Turbo)
-async function callStabilityImage(prompt) {
-  const endpoint = "https://api.stability.ai/v2beta/stable-image/generate/sd3.5-large-turbo";
+// Pollinations Image Generator
+async function callPollinationsImage(prompt) {
+  const encodedPrompt = encodeURIComponent(prompt);
+  const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024`;
 
-  const payload = {
-    prompt: prompt,
-    output_format: "png"
-  };
-
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${STABILITY_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  const text = await res.text();
-
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch (err) {
-    throw new Error("Stability returned non-JSON: " + text.slice(0, 200));
-  }
-
-  if (!data.image_base64) {
-    throw new Error("No image returned: " + JSON.stringify(data));
-  }
-
-  return data.image_base64;
-}
-
-// ImgBB upload
-async function uploadToImgBB(base64) {
-  const apiKey = process.env.IMGBB_API_KEY;
-  const url = `https://api.imgbb.com/1/upload?key=${apiKey}`;
-
-  const form = new FormData();
-  form.append("image", base64);
-
-  const res = await fetch(url, {
-    method: "POST",
-    body: form
-  });
-
-  const data = await res.json();
-
-  if (!data.success) {
-    throw new Error("ImgBB upload failed: " + JSON.stringify(data));
-  }
-
-  return data.data.url;
+  return url; // Pollinations returns a direct image URL
 }
 
 // Test endpoint
 app.get("/", (req, res) => {
-  res.json({ message: "Anime T-shirt API (ImgBB + SD3.5 Turbo) running." });
+  res.json({ message: "Anime T-shirt API (Pollinations Version) running." });
 });
 
 // Main endpoint
 app.all("/generate", async (req, res) => {
   try {
     const idea = generateIdeaObject();
-
-    if (!STABILITY_API_KEY)
-      return res.status(500).json({ error: "Missing STABILITY_API_KEY" });
-
-    if (!IMGBB_API_KEY)
-      return res.status(500).json({ error: "Missing IMGBB_API_KEY" });
-
-    const b64 = await callStabilityImage(idea.artworkConcept);
-    const imgUrl = await uploadToImgBB(b64);
+    const imgUrl = await callPollinationsImage(idea.artworkConcept);
 
     res.json({
       title: idea.title,
@@ -130,5 +82,5 @@ app.all("/generate", async (req, res) => {
   }
 });
 
-// Server start
+// Start server
 app.listen(3000, () => console.log("Server running on port 3000"));
